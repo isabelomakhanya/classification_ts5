@@ -36,10 +36,14 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">project_title</h3>
+  <h3 align="center">EDSA - Climate Change Belief Analysis 2021</h3>
 
-  <p align="center">
-    project_description
+  <p align="left">
+Many companies are built around lessening one’s environmental impact or carbon footprint. They offer products and services that are environmentally friendly and sustainable, in line with their values and ideals. They would like to determine how people perceive climate change and whether or not they believe it is a real threat. This would add to their market research efforts in gauging how their product/service may be received.
+
+With this context, EDSA is challenging you during the Classification Sprint with the task of creating a Machine Learning model that is able to classify whether or not a person believes in climate change, based on their novel tweet data.
+
+Providing an accurate and robust solution to this task gives companies access to a broad base of consumer sentiment, spanning multiple demographic and geographic categories - thus increasing their insights and informing future marketing strategies.
     <br />
     <a href="https://github.com/isabelomakhanya/classification_ts5"><strong>Explore the docs »</strong></a>
     <br />
@@ -87,9 +91,9 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started:
+<!-- Here's a blank template to get started:
 **To avoid retyping too much info. Do a search and replace with your text editor for the following:**
-`isabelomakhanya`, `classification_ts5`, `twitter_handle`, `email`, `project_title`, `project_description`
+`isabelomakhanya`, `classification_ts5`, `twitter_handle`, `email`, `project_title`, `project_description` -->
 
 
 ### Built With
