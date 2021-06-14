@@ -28,6 +28,21 @@ import joblib,os
 
 # Data dependencies
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.decomposition import LatentDirichletAllocation as LDA
+from sklearn.model_selection import GridSearchCV
+from sklearn import metrics
+
+import matplotlib.pyplot as plt 
+import matplotlib
+matplotlib.use("Agg")
+import seaborn as sns 
 
 # Vectorizer
 news_vectorizer = open("resources/tfidfvect.pkl","rb")
@@ -92,11 +107,7 @@ def main():
         # classifying the sentiments
         raw['sentiment'] = [['Negative', 'Neutral', 'Positive', 'News'][x+1] for x in raw['sentiment']]
         
-        sm_df.sort_values('clean_message', ascending=True).plot(kind='bar')
-        plt.title('Distribution')
-        plt.xlabel('sentiment type')
-        plt.ylabel('count')
-        plt.show()
+        
 
 
 # Required to let Streamlit instantiate our web app.  
