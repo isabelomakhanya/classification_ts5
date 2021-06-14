@@ -39,9 +39,9 @@ from sklearn.decomposition import LatentDirichletAllocation as LDA
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
 
-import matplotlib.pyplot as plt 
 import matplotlib
-matplotlib.use("Agg")
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 import seaborn as sns 
 
 # Vectorizer
@@ -101,11 +101,45 @@ def main():
 			st.success("Text Categorized as: {}".format(prediction))
 
 	if selection == "Visualise":
-		st.info("Visualising the data for insights")
-		# Number of Messages Per Sentiment
-        st.write('Distribution of the sentiments')
-        # classifying the sentiments
-        raw['sentiment'] = [['Negative', 'Neutral', 'Positive', 'News'][x+1] for x in raw['sentiment']]
+		st.subheader("Exploratory Data Analysis")
+
+		
+		df = raw
+		st.dataframe(df.head())
+
+		if st.checkbox("Show Shape"):
+			st.write(df.shape)
+
+		if st.checkbox("Show Columns"):
+			all_columns = df.columns.to_list()
+			st.write(all_columns)
+
+		if st.checkbox("Summary"):
+			st.write(df.describe())
+
+		if st.checkbox("Show Selected Columns"):
+			selected_columns = st.multiselect("Select Columns",all_columns)
+			new_df = df[selected_columns]
+			st.dataframe(new_df)
+
+		if st.checkbox("Show Value Counts"):
+			st.write(df.iloc[:,-1].value_counts())
+
+		if st.checkbox("Correlation Plot(Matplotlib)"):
+			plt.matshow(df.corr())
+			st.pyplot()
+
+		if st.checkbox("Correlation Plot(Seaborn)"):
+			st.write(sns.heatmap(df.corr(),annot=True))
+			st.pyplot()
+
+
+		if st.checkbox("Pie Plot"):
+			all_columns = df.columns.to_list()
+			column_to_plot = st.selectbox("Select 1 Column",all_columns)
+			pie_plot = df[column_to_plot].value_counts().plot.pie(autopct="%1.1f%%")
+			st.write(pie_plot)
+			st.pyplot()
         
         
 
