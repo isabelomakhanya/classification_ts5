@@ -38,7 +38,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.decomposition import LatentDirichletAllocation as LDA
 from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
-
+from PIL import Image
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -58,16 +58,19 @@ def main():
 	# Creates a main title and subheader on your page -
 	# these are static across all pages
 	st.title("Tweet Classifer")
+	
 	st.subheader("Climate change tweet classification")
+	image = Image.open('resources/imgs/image.jpg')
+	st.image(image, caption='Tweet Sentiments', use_column_width=True)
 
 	# Creating sidebar with selection box -
 	# you can create multiple pages this way
-	options = ["Prediction", "Information", "Visualise", "About us", "Lets connect!"]
+	options = [ "Information", "EDA","Data visualisation", "predict tweet", "Lets connect!"]
 	selection = st.sidebar.selectbox("Choose Option", options)
 
 	# Building out the "Information" page
 	if selection == "Information":
-		st.info("General Information")
+		st.info("Modelling tweet sentiments for climate change")
 		st.write('Let the tweet spy game begin hahhaa!!! ')
 		# You can read a markdown file from supporting resources folder
 		st.markdown(""" This Machine learning model helps companies
@@ -82,7 +85,7 @@ def main():
 			st.write(raw[['sentiment', 'message']]) # will write the df to the page
 
 	# Building out the predication page
-	if selection == "Prediction":
+	if selection == "Predict tweet":
 		st.info("Prediction with ML Models")
 		# Creating a text box for user input
 		tweet_text = st.text_area("Enter Text","Type Here")
@@ -100,7 +103,7 @@ def main():
 			# more human interpretable.
 			st.success("Text Categorized as: {}".format(prediction))
 
-	if selection == "Visualise":
+	if selection == "EDA":
 		st.subheader("Exploratory Data Analysis")
 
 		
