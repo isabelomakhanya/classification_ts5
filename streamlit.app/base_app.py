@@ -70,15 +70,15 @@ def main():
 
 	# Building out the "Information" page
 	if selection == "Information":
-		st.info("Modelling tweet sentiments for climate change")
-		st.write('Let the tweet spy game begin hahhaa!!! ')
-		# You can read a markdown file from supporting resources folder
-		st.markdown(""" This Machine learning model helps companies
+		st.info(""" This Machine learning model helps companies
 		classify tweets about climate change to get some insights on
 		whether or not an individual believes in climate change based 
 		on their tweet(s) and this helps them derive better marketing
 		strategies in the future.
 		""")
+		st.write('Let the tweet spy game begin hahhaa!!! ')
+		# You can read a markdown file from supporting resources folder
+		#st.markdown()
 
 		st.subheader("Raw Twitter data and label")
 		if st.checkbox('Show raw data'): # data is hidden if box is unchecked
@@ -143,10 +143,22 @@ def main():
 			pie_plot = df[column_to_plot].value_counts().plot.pie(autopct="%1.1f%%")
 			st.write(pie_plot)
 			st.pyplot()
-        
-        
+			
+			
+	elif selection == 'Lets connect!':
+		st.subheader("Have questions? We are an email away to answer your questions")
+
+		st.write("Noxolo: wendyngcobo98@gmail.com")
+		st.write("Sabelo: isabelomakhanya@gmail.com")
+		st.write("Morgan: letlhogonolomorgan69@gmail.com")
+		st.write("Tebogo: mrtjsambo@gmail.com")
+		st.write("Sergio: sergiomornayseptember@gmail.com")
+		st.write("Vuyelwa: vuyelwaf22@gmail.com")
+		image = Image.open('resources/imgs/EDSA_logo.png')
+		st.image(image, caption='TS5_EDSA_2021', use_column_width=True)
 
 
+    #st.write()
 # Required to let Streamlit instantiate our web app.  
 if __name__ == '__main__':
 	main()
