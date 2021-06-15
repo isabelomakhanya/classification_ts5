@@ -45,7 +45,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 
 # Vectorizer
-news_vectorizer = open("resources/tfidfvect.pkl","rb")
+news_vectorizer = open("resources/models/tfidfvect.pkl","rb")
 tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
 
 # Load your raw data
@@ -53,7 +53,7 @@ raw = pd.read_csv("resources/train.csv")
 
 # The main function where we will build the actual app
 def main():
-	"""Tweet Classifier App with Streamlit """
+	"""Tweet Classifier App with Streamlit"""
 
 	# Creates a main title and subheader on your page -
 	# these are static across all pages
@@ -92,7 +92,7 @@ def main():
 			vect_text = tweet_cv.transform([tweet_text]).toarray()
 			# Load your .pkl file with the model of your choice + make predictions
 			# Try loading in multiple models to give the user a choice
-			predictor = joblib.load(open(os.path.join("resources/Logistic_regression.pkl"),"rb"))
+			predictor = joblib.load(open(os.path.join("resources/models/Logistic_regression.pkl"),"rb"))
 			prediction = predictor.predict(vect_text)
 
 			# When model has successfully run, will print prediction
