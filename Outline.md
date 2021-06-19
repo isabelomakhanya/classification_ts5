@@ -7,8 +7,8 @@
 ### c) null
 ## 3. Cleaning
 ### a) lowercase
-### b) remove punctuation
-### c) remove stopwords
+### b) remove punctuation, tokenization
+### c) remove stopwords, numerics
 ### d) @mention (handles)
 ### e) Lemma, Stemma, bagofwords
 ### f) emojis
@@ -47,3 +47,4 @@
 Streamlit
 Comet.ml
 Insights/Summary/conclussion
+COMMENTS/INSIGHTS
