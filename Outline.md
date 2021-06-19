@@ -9,7 +9,7 @@
 ### a) lowercase
 ### b) remove punctuation, tokenization
 ### c) remove stopwords, numerics
-### d) @mention (handles)
+### d) @mention (handles) *
 ### e) Lemma, Stemma, bagofwords
 ### f) emojis
 ###### i) remove/categories (***optional)
@@ -48,3 +48,4 @@ Streamlit
 Comet.ml
 Insights/Summary/conclussion
 COMMENTS/INSIGHTS
+****Class (lemma, stemma)
