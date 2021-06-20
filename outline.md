@@ -10,13 +10,13 @@
 ### b) remove punctuation, tokenization
 ### c) remove stopwords, numerics
 ### d) @mention (handles) *
-### e) Lemma, Stemma, bagofwords
+### e) Lemma, Stemma, bagofwords*, TF-IDF
 ### f) emojis
 ###### i) remove/categories (***optional)
 ## 4. EDA
 (EDA, preprocessing,feature enginering, standardisation, normalisation, cleaning)
 
-## 5. Tarain_Test_Split
+## 5. Train_Test_Split
 
 ## 6. Models
 ### A) TRAIN & PREDICT
@@ -49,3 +49,13 @@ Comet.ml
 Insights/Summary/conclussion
 COMMENTS/INSIGHTS
 ****Class (lemma, stemma)
+Crossvalidation?
+
+Class*
+Balancing(?)
+Pipeline
+Tuning
+Comet
+Streamlit
+
+Presentation (Beautiful.ai, Google Slides, PowerBI, Streamlit)
