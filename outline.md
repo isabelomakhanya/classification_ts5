@@ -59,3 +59,22 @@ Comet
 Streamlit
 
 Presentation (Beautiful.ai, Google Slides, PowerBI, Streamlit)
+
+
+ * legend, colours
+ * group emopji by sentiment 
+ * visualise emojis >> Streamlit
+ * Boxplots, distribution of words, Summary
+ * Insightful visuals
+ * Streamlit df.head()
+ * Google st.cache
+ * PRESENTATION???
+ ** organisation
+ ** solution
+ ** insights
+ ** client/company
+ ** screenshot of evidence
+ * Multiple models for Streamlit
+ * .pkl + pickle vectorized
+ * 
+
