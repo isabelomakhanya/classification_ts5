@@ -3,7 +3,7 @@
     Simple Streamlit webserver application for serving developed classification
 	models.
 
-    Author: Explore Data Science Academy.
+    Author: Explore Data Science Academy and Team TS5.
 
     Note:
 	
@@ -25,6 +25,8 @@
 # Streamlit dependencies
 import streamlit as st
 import joblib,os
+import plotly.express as px
+from plotly import graph_objects as go
 
 # Data dependencies
 import pandas as pd
@@ -46,8 +48,9 @@ from nltk.stem.porter import *
 from nltk.corpus import stopwords
 #import spacy
 from nltk import pos_tag
-from nltk.stem.wordnet import WordNetLemmatizer 
+from nltk.stem import WordNetLemmatizer,PorterStemmer,LancasterStemmer
 from nltk.tokenize import word_tokenize
+from nltk.tokenize import RegexpTokenizer
 from sklearn.feature_extraction.text import CountVectorizer
 
 from PIL import Image
@@ -64,23 +67,71 @@ tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl f
 raw = pd.read_csv("resources/train.csv")
 
 # cleaning
-clean_df = raw.copy()
+df = raw.copy()
 
-def remove_punctuations(msg):
-    msg = str(msg).lower()
-    msg = re.sub('\[.*?\]', '', msg)
-    msg = re.sub('https?://\S+|www\.\S+', '', msg)
-    msg = re.sub('<.*?>+', '', msg)
-    msg = re.sub('[%s]' % re.escape(string.punctuation), '', msg)
-    msg = re.sub('\n', '', msg)
-    msg = re.sub('\w*\d\w*', '', msg)
-    msg = re.sub('rt','',msg)
-    return msg
+#removing noise using lemma and stemma
+lemmatizer = WordNetLemmatizer()
+stemmer = PorterStemmer()
 
-clean_df['clean_message'] = clean_df['message'].apply(lambda x:remove_punctuations(x))
+# filtered words
+def preprocess_fil(sentence):
+    '''function removes noise/cleans text data'''
+    sentence=str(sentence)
+    sentence = sentence.lower()
+    sentence=sentence.replace('{html}',"")
+    cleanr = re.compile('<.*?>') 
+    cleantext = re.sub(cleanr, '', sentence)
+    rem_url=re.sub(r'http\S+', '',cleantext)
+    rem_num = re.sub('[0-9]+', '', rem_url)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in stem_words]
+    return " ".join(filtered_words)
 
-#Remove stop words
-clean_df['clean_message'] = clean_df['clean_message'].apply(lambda x: ' '.join([a for a in x.split() if len(a)>3]))
+# stemma
+def preprocess_stemm(sentence):
+    sentence=str(sentence)
+    sentence = sentence.lower()
+    sentence=sentence.replace('{html}',"") 
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', sentence)
+    rem_url=re.sub(r'http\S+', '',cleantext)
+    rem_num = re.sub('[0-9]+', '', rem_url)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in stem_words]
+    return " ".join(stem_words)
+#lemma
+def preprocess_lemm(sentence):
+    sentence=str(sentence)
+    sentence = sentence.lower()
+    sentence=sentence.replace('{html}',"") 
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', sentence)
+    rem_url=re.sub(r'http\S+', '',cleantext)
+    rem_num = re.sub('[0-9]+', '', rem_url)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in filtered_words ]
+    return " ".join(lemma_words)
+
+
+# cleaning the text messages and creates a new column named 'clean_message'
+df['clean_message']=df['message'].map(lambda s:preprocess_fil(s))
+
+# lemmatizes the cleaned text data and creates new column named 'Lemma"
+df['Lemma']=df['message'].map(lambda s:preprocess_lemm(s))
+
+# stemmatize the cleaned text data and creates a new column named 'Stemm'
+df['stemm']=df['message'].map(lambda s:preprocess_stemm(s)) 
+
+
 
 
 # The main function where we will build the actual app
@@ -97,7 +148,7 @@ def main():
 
 	# Creating sidebar with selection box -
 	# you can create multiple pages this way
-	options = [ "Information", "EDA", "Data visualisation", "predict tweet", "Lets connect!"]
+	options = [ "Information", "EDA","predict tweet", "Lets connect!"]
 	selection = st.sidebar.selectbox("Choose Option", options)
 
 	# Building out the "Information" page
@@ -118,9 +169,11 @@ def main():
 
 	# Building out the predication page
 	elif selection == "predict tweet":
-		st.info("Prediction with ML Models")
+		st.info("Make tweet Predictions with ML Models of your choice")
+
 		# Creating a text box for user input
-		tweet_text = st.text_area("Enter Text","Type Here")
+		tweet_text = st.text_area("Enter Tweet","Type Here")
+
 
 		if st.button("Classify"):
 			# Transforming user input with vectorizer
@@ -138,42 +191,63 @@ def main():
 	elif selection == "EDA":
 		st.subheader("Exploratory Data Analysis")
 		df = raw.copy()
-		df['sentiment'] = [['Negative', 'Neutral', 'Positive', 'News'][x+1] for x in df['sentiment']]
+		# Labeling the target
 
+        df['class_label'] = [['Negative(-1)', 'Neutral(0)', 'Positive(1)', 'News(2)'][x+1] for x in df['sentiment']]
+		dist = df.groupby('class_label').count()['clean_message'].reset_index().sort_values(by='clean_message',ascending=False)
 		st.dataframe(df.head())
 
-		if st.checkbox("Show Shape"):
-			st.write(df.shape)
+		plt.figure(figsize=(12,6))
+		sns.countplot(x='sentiment',data=df, palette='Blues_d')
+		plt.title('Count of Sentiments')
+		st.pyplot()
 
-		elif st.checkbox("Show Columns"):
-			all_columns = df.columns.to_list()
-			st.write(all_columns)
-
-		elif st.checkbox("Summary"):
-			st.write(df.describe())
-
+		   # average length of words overall
+        df['clean_message'].str.split().\
+            apply(lambda x : [len(i) for i in x]).\
+            map(lambda x : np.mean(x)).hist()
+        plt.title('Avg number of words used per tweet')
+        plt.xlabel('Number of words per tweet')
+        plt.ylabel('Count of Tweets')
 		
+	    df['length_tweet'] = df['clean_message'].apply(len)
+		h = sns.FacetGrid(df,col = 'class_label')
+		h.map(plt.hist,'length_tweet')
+		plt.show()
+
+		#Box plot visual of distribution between length of tweet vs class label
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(x=df['class_label'], 
+		y=df.clean_message.str.split().apply(len),
+		data=df,
+		palette="Blues")
+
+        plt.title('No of Words per Tweet by Sentiment Class')
+        plt.xlabel('Sentiment Class')
+        plt.ylabel('Word Count per Tweet');
 
 
-		elif st.checkbox("visuals"):
-			plt.figure(figsize=(12,6))
-			sns.countplot(x='sentiment',data=df, palette='Greens')
-			st.pyplot()
+        fig = go.Figure(go.Funnelarea(
+        text = dist.class_label,
+        values = dist.clean_message,
+        title = {"position": "top center", "text": "Funnel-Chart of Sentiment Distribution"}))
+        fig.show()
 
-			
-			pie_plot = df['sentiment'].value_counts().plot.pie(autopct="%1.1f%%")
-			st.write(pie_plot)
-			st.pyplot()
-			
-			plt.figure(figsize=(12,6))
-			sns.barplot(x='sentiment', y=df['message'].apply(len) ,data = df, palette='inferno')
-			plt.ylabel('avg_Length')
-			plt.xlabel('Sentiment')
-			plt.title('Average Length of Message by Sentiment')
-			#plt.show()            
-			st.pyplot()
-			
-	elif selection == 'Lets connect!':
+		plt.figure(figsize=(12,6))
+		sns.barplot(x='sentiment', y=df['message'].apply(len) ,data = df, palette='Blues_d')
+		plt.ylabel('avg_Length')
+		plt.xlabel('Sentiment')
+		plt.title('Average Length of Message by Sentiment')
+        st.pyplot()
+
+        # most common words in tweet messages
+		fig = px.bar(new, x="count", y="Common_words", color_discrete_sequence =['']*len(df), title='Commmon Words in tweet messages', orientation='h', 
+             width=600, height=600)
+        fig.show()
+		
+		
+    elif selection == 'Lets connect!':
+
 		st.subheader("Have questions? We are an email away to answer your questions")
 
 		st.write("Noxolo: wendyngcobo98@gmail.com")
