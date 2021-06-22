@@ -149,7 +149,7 @@ def main():
 	# Creating sidebar with selection box -
 	# you can create multiple pages this way
 	options = [ "Information", "EDA","predict tweet", "Lets connect!"]
-	selection = st.sidebar.selectbox("Choose Option", options)
+	selection = st.selectbox("Choose Option", options)
 
 	# Building out the "Information" page
 	if selection == "Information":
@@ -165,28 +165,123 @@ def main():
 
 		st.subheader("Raw Twitter data and label")
 		if st.checkbox('Show raw data'): # data is hidden if box is unchecked
-			st.write(raw[['sentiment', 'message']]) # will write the df to the page
+			st.write(raw[['sentiment', 'message']].head()) # will write the df to the page
 
 	# Building out the predication page
 	elif selection == "predict tweet":
 		st.info("Make tweet Predictions with ML Models of your choice")
+		choices = ["Single Tweet", "Data set"]
+		option = st.selectbox("Choose Option", choices)
+        
+		#loading pickle file for the selected model
+        def load_pickle(pkl_file):
+			predictor = joblib.load(open(os.path.join(pkl_file),"rb"))
+			return predictor
 
-		# Creating a text box for user input
-		tweet_text = st.text_area("Enter Tweet","Type Here")
+		if option == 'Single Tweet':
+			
+			st.subheader('Classify single tweet')
+            # Creating a text box for user input
+			tweet_text1 = st.text_area("Enter Tweet","Type Here")
 
+            #labels for outcome
+			dict_labels = {1:'Positive', 0:'Neutral', -1:'Negative', 2:'News'}
 
-		if st.button("Classify"):
-			# Transforming user input with vectorizer
-			vect_text = tweet_cv.transform([tweet_text]).toarray()
-			# Load your .pkl file with the model of your choice + make predictions
-			# Try loading in multiple models to give the user a choice
-			predictor = joblib.load(open(os.path.join("resources/models/Logistic_regression.pkl"),"rb"))
-			prediction = predictor.predict(vect_text)
+			#selection for model to be used
+			models1 = ['LinearSVC', 'KNeighborsClassifier','DecisionTreeClassifier', 
+			'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
+			'AdaBoostClassifier']
+			model1 = st.selectbox("Choose Model", models1)
 
-			# When model has successfully run, will print prediction
-			# You can use a dictionary or similar structure to make this output
-			# more human interpretable.
-			st.success("Text Categorized as: {}".format(prediction))
+			if st.button("Classify"):
+				# Transforming user input with vectorizer
+				clean_text = preprocess_stemm(tweet_text1)
+				vect_text = tweet_cv.transform([clean_text]).toarray()
+		        
+				if model1 == 'LinearSVC':
+					predictor = load_pickle("resources/models/LinearSVC.pkl")
+					prediction = predictor.predict(vect_text)
+
+			    elif model1 == 'KNeighborsClassifier':
+					predictor = load_pickle("resources/models/KNeighborsClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model1 == 'DecisionTreeClassifier':
+					predictor = load_pickle("resources/models/DecisionTreeClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model1 == 'RandomForestClassifier':
+					predictor = load_pickle("resources/models/RandomForestClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model1 == 'ComplementNB':
+					predictor = load_pickle("resources/models/ComplementNB.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model1  =='MultinomialNB':
+					predictor = load_pickle("resources/models/MultinomialNB.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model1 == 'AdaBoostClassifier':
+					predictor = load_pickle("resources/models/AdaBoostClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+				
+				
+                final_pred = dict_labels[prediction]
+				st.success("Text Categorized as: {}".format(final_pred))
+
+		elif option == "Data set":
+
+			st.subheader('Classify single tweet')
+            # Creating a text box for user input
+			tweet_text2 = st.text_area("Enter Cololumn","Type Here")
+
+            #labels for outcome
+			dict_labels2 = {1:'Positive', 0:'Neutral', -1:'Negative', 2:'News'}
+
+			#selection for model to be used
+			models2 = ['LinearSVC', 'KNeighborsClassifier','DecisionTreeClassifier', 
+			'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
+			'AdaBoostClassifier']
+			model2 = st.selectbox("Choose Model", models2)
+
+			if st.button("Classify"):
+				# Transforming user input with vectorizer
+				clean_text = df[tweet_text2].apply(preprocess_stemm)
+				vect_text = tweet_cv.transform([clean_text]).toarray()
+		        
+				if model2 == 'LinearSVC':
+					predictor = load_pickle("resources/models/LinearSVC.pkl")
+					prediction = predictor.predict(vect_text)
+
+			    elif model2 == 'KNeighborsClassifier':
+					predictor = load_pickle("resources/models/KNeighborsClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model2 == 'DecisionTreeClassifier':
+					predictor = load_pickle("resources/models/DecisionTreeClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model2 == 'RandomForestClassifier':
+					predictor = load_pickle("resources/models/RandomForestClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model2 == 'ComplementNB':
+					predictor = load_pickle("resources/models/ComplementNB.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model2  =='MultinomialNB':
+					predictor = load_pickle("resources/models/MultinomialNB.pkl")
+					prediction = predictor.predict(vect_text)
+
+				elif model2 == 'AdaBoostClassifier':
+					predictor = load_pickle("resources/models/AdaBoostClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+				
+				
+                final_pred2 = dict_labels2[prediction]
+				st.success("Text Categorized as: {}".format(final_pred2))
+
 
 	elif selection == "EDA":
 		st.subheader("Exploratory Data Analysis")
@@ -195,14 +290,16 @@ def main():
 
         df['class_label'] = [['Negative(-1)', 'Neutral(0)', 'Positive(1)', 'News(2)'][x+1] for x in df['sentiment']]
 		dist = df.groupby('class_label').count()['clean_message'].reset_index().sort_values(by='clean_message',ascending=False)
+		
 		st.dataframe(df.head())
-
+        
+		#bar plot of the count of each sentiment
 		plt.figure(figsize=(12,6))
 		sns.countplot(x='sentiment',data=df, palette='Blues_d')
 		plt.title('Count of Sentiments')
 		st.pyplot()
 
-		   # average length of words overall
+		# average length of words overall
         df['clean_message'].str.split().\
             apply(lambda x : [len(i) for i in x]).\
             map(lambda x : np.mean(x)).hist()
@@ -210,6 +307,7 @@ def main():
         plt.xlabel('Number of words per tweet')
         plt.ylabel('Count of Tweets')
 		
+		# distribution of each of the length of the tweets
 	    df['length_tweet'] = df['clean_message'].apply(len)
 		h = sns.FacetGrid(df,col = 'class_label')
 		h.map(plt.hist,'length_tweet')
@@ -226,13 +324,14 @@ def main():
         plt.xlabel('Sentiment Class')
         plt.ylabel('Word Count per Tweet');
 
-
+        # funnel chart of proportion of each sentiment
         fig = go.Figure(go.Funnelarea(
         text = dist.class_label,
         values = dist.clean_message,
         title = {"position": "top center", "text": "Funnel-Chart of Sentiment Distribution"}))
         fig.show()
 
+        # bar plot for average length of messages by sentiments
 		plt.figure(figsize=(12,6))
 		sns.barplot(x='sentiment', y=df['message'].apply(len) ,data = df, palette='Blues_d')
 		plt.ylabel('avg_Length')
