@@ -52,6 +52,8 @@ df = raw.copy()
 lemmatizer = WordNetLemmatizer()
 stemmer = PorterStemmer()
 # stemma
+
+@st.cache(suppress_st_warning=True)
 def preprocess_stemm(sentence):
     sentence=str(sentence)
     sentence = sentence.lower()
@@ -70,6 +72,7 @@ def preprocess_stemm(sentence):
 # stemmatize the cleaned text data and creates a new column named 'Stemm'
 df['stemm']=df['message'].map(lambda s:preprocess_stemm(s))
 
+@st.cache(suppress_st_warning=True)
 def main():
     """Tweets classifier App with Streamlit"""
 
@@ -136,31 +139,33 @@ def main():
                 map(lambda x: np.mean(x)).hist()
         plt.title('avg number of words used per tweet')
         plt.xlabel('Number of words per tweet')
-        plt.ylabel('Count of Tweets')        
+        plt.ylabel('Count of Tweets')  
+        st.pyplot()      
 
         # distribution of each of length of the tweets
         df['length_tweet'] = df['stemm'].apply(len)
         h = sns.FacetGrid(df, col ='class_label')
         h.map(plt.hist,'length_tweet')
-        plt.show()
+        st.pyplot()
 
         #Box plot visual of distribution between length of tweet vs sentiment
         plt.figure(figsize =(10,6))
         sns.boxplot(x=df['sentiment'],
-        y=df.clean_message.str.split().apply(len),
+        y=df.stemm.str.split().apply(len),
         data=df,
         palette='Blues')
         
         plt.title('No of words per Tweet by sentiment Class')
         plt.xlabel('Sentiment Class')
         plt.ylabel('Word Count per Tweet')
+        st.pyplot()
 
         #Funnel chart of proportion of each sentiment
         fig = go.Figure(go.Funnelarea(
             text = dist.class_label,
-            values = dist.clean_message,
+            values = dist.stemm,
             title = {"position": "top center", "text": "Funnel-Chart of Sentiment Distribution"}))
-        fig.show()
+        st.pyplot(fig)
 
         #bar plot for average length of messages by sentiments
         plt.figure(figsize=(12,6))
@@ -179,10 +184,10 @@ def main():
         color_discrete_sequence=['']*len(df),
         title ='Commmon Words in tweet messages', orientation='h',
         width=600, height=600)
-        fig.show()
+        st.pyplot(fig)
 
         #word cloud of most common words
-        train_msg = " ".join(tweet for tweet in df.clean_message)
+        train_msg = " ".join(tweet for tweet in df.stemm)
         train_wordcloud = WordCloud(max_font_size=250,
         background_color="white",
         width=1500,
@@ -193,7 +198,7 @@ def main():
         plt.imshow(train_wordcloud)
         plt.axis("off")
         plt.tight_layout(pad=0)
-        plt.show()
+        st.pyplot()
        
 
      
