@@ -23,12 +23,8 @@
 
 """
 # Streamlit dependencies
-import seaborn as sns
-import numpy as np
-import matplotlib.pyplot as plt
 import streamlit as st
-import joblib
-import os
+import joblib,os
 import plotly.express as px
 from plotly import graph_objects as go
 
@@ -46,12 +42,13 @@ from sklearn.model_selection import GridSearchCV
 from sklearn import metrics
 
 import string
-import re  # for regex
+import re    #for regex
 import nltk
+from nltk.stem.porter import *
 from nltk.corpus import stopwords
 #import spacy
 from nltk import pos_tag
-from nltk.stem import WordNetLemmatizer, PorterStemmer
+from nltk.stem import WordNetLemmatizer,PorterStemmer,LancasterStemmer
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from sklearn.feature_extraction.text import CountVectorizer
@@ -59,12 +56,12 @@ from sklearn.feature_extraction.text import CountVectorizer
 from PIL import Image
 import matplotlib
 matplotlib.use('TkAgg')
-
+import matplotlib.pyplot as plt
+import seaborn as sns 
 
 # Vectorizer
-news_vectorizer = open("resources/models/tfidfvect.pkl", "rb")
-# loading your vectorizer from the pkl file
-tweet_cv = joblib.load(news_vectorizer)
+news_vectorizer = open("resources/models/tfidfvect.pkl","rb")
+tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
 
 # Load your raw data
 raw = pd.read_csv("resources/train.csv")
@@ -72,313 +69,300 @@ raw = pd.read_csv("resources/train.csv")
 # cleaning
 df = raw.copy()
 
-# removing noise using lemma and stemma
+#removing noise using lemma and stemma
 lemmatizer = WordNetLemmatizer()
 stemmer = PorterStemmer()
 
 # filtered words
-
-
 def preprocess_fil(sentence):
     '''function removes noise/cleans text data'''
-    sentence = str(sentence)
+    sentence=str(sentence)
     sentence = sentence.lower()
-    sentence = sentence.replace('{html}', "")
-    cleanr = re.compile('<.*?>')
+    sentence=sentence.replace('{html}',"")
+    cleanr = re.compile('<.*?>') 
     cleantext = re.sub(cleanr, '', sentence)
-    rem_url = re.sub(r'http\S+', '', cleantext)
+    rem_url=re.sub(r'http\S+', '',cleantext)
     rem_num = re.sub('[0-9]+', '', rem_url)
     tokenizer = RegexpTokenizer(r'\w+')
-    tokens = tokenizer.tokenize(rem_num)
-    filtered_words = [w for w in tokens if len(
-        w) > 2 if not w in stopwords.words('english')]
-    stem_words = [stemmer.stem(w) for w in filtered_words]
-    lemma_words = [lemmatizer.lemmatize(w) for w in stem_words]
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in stem_words]
     return " ".join(filtered_words)
 
 # stemma
-
-
 def preprocess_stemm(sentence):
-    sentence = str(sentence)
+    sentence=str(sentence)
     sentence = sentence.lower()
-    sentence = sentence.replace('{html}', "")
+    sentence=sentence.replace('{html}',"") 
     cleanr = re.compile('<.*?>')
     cleantext = re.sub(cleanr, '', sentence)
-    rem_url = re.sub(r'http\S+', '', cleantext)
+    rem_url=re.sub(r'http\S+', '',cleantext)
     rem_num = re.sub('[0-9]+', '', rem_url)
     tokenizer = RegexpTokenizer(r'\w+')
-    tokens = tokenizer.tokenize(rem_num)
-    filtered_words = [w for w in tokens if len(
-        w) > 2 if not w in stopwords.words('english')]
-    stem_words = [stemmer.stem(w) for w in filtered_words]
-    lemma_words = [lemmatizer.lemmatize(w) for w in stem_words]
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in stem_words]
     return " ".join(stem_words)
-# lemma
-
-
+#lemma
 def preprocess_lemm(sentence):
-    sentence = str(sentence)
+    sentence=str(sentence)
     sentence = sentence.lower()
-    sentence = sentence.replace('{html}', "")
+    sentence=sentence.replace('{html}',"") 
     cleanr = re.compile('<.*?>')
     cleantext = re.sub(cleanr, '', sentence)
-    rem_url = re.sub(r'http\S+', '', cleantext)
+    rem_url=re.sub(r'http\S+', '',cleantext)
     rem_num = re.sub('[0-9]+', '', rem_url)
     tokenizer = RegexpTokenizer(r'\w+')
-    tokens = tokenizer.tokenize(rem_num)
-    filtered_words = [w for w in tokens if len(
-        w) > 2 if not w in stopwords.words('english')]
-    stem_words = [stemmer.stem(w) for w in filtered_words]
-    lemma_words = [lemmatizer.lemmatize(w) for w in filtered_words]
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in filtered_words ]
     return " ".join(lemma_words)
 
 
 # cleaning the text messages and creates a new column named 'clean_message'
-df['clean_message'] = df['message'].map(lambda s: preprocess_fil(s))
+df['clean_message']=df['message'].map(lambda s:preprocess_fil(s))
 
 # lemmatizes the cleaned text data and creates new column named 'Lemma"
-df['Lemma'] = df['message'].map(lambda s: preprocess_lemm(s))
+df['Lemma']=df['message'].map(lambda s:preprocess_lemm(s))
 
 # stemmatize the cleaned text data and creates a new column named 'Stemm'
-df['stemm'] = df['message'].map(lambda s: preprocess_stemm(s))
+df['stemm']=df['message'].map(lambda s:preprocess_stemm(s)) 
+
+
 
 
 # The main function where we will build the actual app
 def main():
-    """Tweet Classifier App with Streamlit"""
+	"""Tweet Classifier App with Streamlit"""
 
-    # Creates a main title and subheader on your page -
-    # these are static across all pages
-    st.title("Tweet Classifer")
+	# Creates a main title and subheader on your page -
+	# these are static across all pages
+	st.title("Tweet Classif")
+	
+	st.subheader("Climate change tweet classification")
+	image = Image.open('resources/imgs/image.jpg')
+	st.image(image, caption='Tweet Sentiments', use_column_width=True)
 
-    st.subheader("Climate change tweet classification")
-    image = Image.open('resources/imgs/image.jpg')
-    st.image(image, caption='Tweet Sentiments', use_column_width=True)
+	# Creating sidebar with selection box -
+	# you can create multiple pages this way
+	
+    options = [ "Information", "EDA","predict tweet", "Lets connect!"]
+	selection = st.selectbox("Choose Option", options)
 
-    # Creating sidebar with selection box -
-    # you can create multiple pages this way
-    options = ["Information", "EDA", "predict tweet", "Lets connect!"]
-    selection = st.selectbox("Choose Option", options)
-
-    # Building out the "Information" page
-    if selection == "Information":
-        st.info(""" This Machine learning model helps companies
+	# Building out the "Information" page
+	if selection == "Information":
+		st.info(""" This Machine learning model helps companies
 		classify tweets about climate change to get some insights on
 		whether or not an individual believes in climate change based 
 		on their tweet(s) and this helps them derive better marketing
 		strategies in the future.
 		""")
-        st.write('Let the tweet spy game begin hahhaa!!! ')
-        # You can read a markdown file from supporting resources folder
-        # st.markdown()
+		st.write('Let the tweet spy game begin hahhaa!!! ')
+		# You can read a markdown file from supporting resources folder
+		#st.markdown()
 
-        st.subheader("Raw Twitter data and label")
-        if st.checkbox('Show raw data'):  # data is hidden if box is unchecked
-            # will write the df to the page
-            st.write(raw[['sentiment', 'message']].head())
+		st.subheader("Raw Twitter data and label")
+		if st.checkbox('Show raw data'): # data is hidden if box is unchecked
+			st.write(raw[['sentiment', 'message']].head()) # will write the df to the page
+    
+    if selection == "EDA":
+		st.subheader("Exploratory Data Analysis")
+		df = raw.copy()
+		# Labeling the target
 
-    # Building out the predication page
-    elif selection == "predict tweet":
-        st.info("Make tweet Predictions with ML Models of your choice")
-        choices = ["Single Tweet", "Data set"]
-        option = st.selectbox("Choose Option", choices)
+        df['class_label'] = [['Negative(-1)', 'Neutral(0)', 'Positive(1)', 'News(2)'][x+1] for x in df['sentiment']]
+		dist = df.groupby('class_label').count()['clean_message'].reset_index().sort_values(by='clean_message',ascending=False)
+		
+		st.dataframe(df.head())
+        
+		#bar plot of the count of each sentiment
+		plt.figure(figsize=(12,6))
+		sns.countplot(x='sentiment',data=df, palette='Blues_d')
+		plt.title('Count of Sentiments')
+		st.pyplot()
 
-        # loading pickle file for the selected model
-    def load_pickle(pkl_file):
-        predictor = joblib.load(open(os.path.join(pkl_file), "rb"))
-        return predictor
+		# average length of words overall
+        df['clean_message'].str.split().\
+            apply(lambda x : [len(i) for i in x]).\
+            map(lambda x : np.mean(x)).hist()
+        plt.title('Avg number of words used per tweet')
+        plt.xlabel('Number of words per tweet')
+        plt.ylabel('Count of Tweets')
+		
+		# distribution of each of the length of the tweets
+	    df['length_tweet'] = df['clean_message'].apply(len)
+		h = sns.FacetGrid(df,col = 'class_label')
+		h.map(plt.hist,'length_tweet')
+		plt.show()
 
-    if option == 'Single Tweet':
+		#Box plot visual of distribution between length of tweet vs class label
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(x=df['class_label'], 
+		y=df.clean_message.str.split().apply(len),
+		data=df,
+		palette="Blues")
 
-        st.subheader('Classify single tweet')
-        # Creating a text box for user input
-        tweet_text1 = st.text_area("Enter Tweet", "Type Here")
+        plt.title('No of Words per Tweet by Sentiment Class')
+        plt.xlabel('Sentiment Class')
+        plt.ylabel('Word Count per Tweet')
 
-        # labels for outcome
-        # dict_labels = {1: 'Positive', 0: 'Neutral', -1: 'Negative', 2: 'News'}
+        # funnel chart of proportion of each sentiment
+        fig = go.Figure(go.Funnelarea(
+        text = dist.class_label,
+        values = dist.clean_message,
+        title = {"position": "top center", "text": "Funnel-Chart of Sentiment Distribution"}))
+        fig.show()
 
-        # selection for model to be used
-        models1 = ['LinearSVC', 'KNeighborsClassifier', 'DecisionTreeClassifier',
-                   'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
-                   'AdaBoostClassifier']
-        model1 = st.selectbox("Choose Model", models1)
+        # bar plot for average length of messages by sentiments
+		plt.figure(figsize=(12,6))
+		sns.barplot(x='sentiment', y=df['message'].apply(len) ,data = df, palette='Blues_d')
+		plt.ylabel('avg_Length')
+		plt.xlabel('Sentiment')
+		plt.title('Average Length of Message by Sentiment')
+        st.pyplot()
 
-        if st.button("Classify"):
-            # Transforming user input with vectorizer
-            clean_text = preprocess_stemm(tweet_text1)
-            vect_text = tweet_cv.transform([clean_text]).toarray()
+        # most common words in tweet messages
+		df['new_lis'] = df['clean_message'].apply()
+		fig = px.bar(new, x="count", y="Common_words", color_discrete_sequence =['']*len(df), title='Commmon Words in tweet messages', orientation='h', 
+             width=600, height=600)
+        fig.show()
 
-            if model1 == 'LinearSVC':
-                predictor = load_pickle("resources/models/LinearSVC.pkl")
-                prediction = predictor.predict(vect_text)
+	# Building out the predication page
+	if selection == "predict tweet":
 
-            elif model1 == 'KNeighborsClassifier':
-                predictor = load_pickle(
-                    "resources/models/KNeighborsClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+		st.info("Make tweet Predictions with ML Models of your choice")
+		choices = ["Single Tweet", "Data set"]
+		option = st.selectbox("Choose Option", choices)
+        
+		#loading pickle file for the selected model
+        def load_pickle(pkl_file):
+			predictor = joblib.load(open(os.path.join(pkl_file),"rb"))
+			return predictor
+		
+		
+		if option == 'Single Tweet':	
+			st.subheader('Classify single tweet')
+            # Creating a text box for user input
+			tweet_text1 = st.text_area("Enter Tweet","Type Here")
 
-            elif model1 == 'DecisionTreeClassifier':
-                predictor = load_pickle(
-                    "resources/models/DecisionTreeClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+            #labels for outcome
+			dict_labels = {1:'Positive', 0:'Neutral', -1:'Negative', 2:'News'}
 
-            elif model1 == 'RandomForestClassifier':
-                predictor = load_pickle(
-                    "resources/models/RandomForestClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+			#selection for model to be used
+			models1 = ['LinearSVC', 'KNeighborsClassifier','DecisionTreeClassifier', 
+			'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
+			'AdaBoostClassifier']
+			model1 = st.selectbox("Choose Model", models1)
 
-            elif model1 == 'ComplementNB':
-                predictor = load_pickle("resources/models/ComplementNB.pkl")
-                prediction = predictor.predict(vect_text)
+			if st.button("Classify"):
+				# Transforming user input with vectorizer
+				clean_text = preprocess_stemm(tweet_text1)
+				vect_text = tweet_cv.transform([clean_text]).toarray()
+		        
+				if model1 == 'LinearSVC':
+					predictor = load_pickle("resources/models/LinearSVC.pkl")
+					prediction = predictor.predict(vect_text)
 
-            elif model1 == 'MultinomialNB':
-                predictor = load_pickle("resources/models/MultinomialNB.pkl")
-                prediction = predictor.predict(vect_text)
+			    if model1 == 'KNeighborsClassifier':
+					predictor = load_pickle("resources/models/KNeighborsClassifier.pkl")
+					prediction = predictor.predict(vect_text)
 
-            elif model1 == 'AdaBoostClassifier':
-                predictor = load_pickle(
-                    "resources/models/AdaBoostClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+				if model1 == 'DecisionTreeClassifier':
+					predictor = load_pickle("resources/models/DecisionTreeClassifier.pkl")
+					prediction = predictor.predict(vect_text)
 
-            final_pred = dict_labels[prediction]
-            st.success("Text Categorized as: {}".format(final_pred))
+				if model1 == 'RandomForestClassifier':
+					predictor = load_pickle("resources/models/RandomForestClassifier.pkl")
+					prediction = predictor.predict(vect_text)
 
-        elif option == "Data set":
+				if model1 == 'ComplementNB':
+					predictor = load_pickle("resources/models/ComplementNB.pkl")
+					prediction = predictor.predict(vect_text)
 
-            st.subheader('Classify single tweet')
-# Creating a text box for user input
-            tweet_text2 = st.text_area("Enter Cololumn", "Type Here")
+				if model1  =='MultinomialNB':
+					predictor = load_pickle("resources/models/MultinomialNB.pkl")
+					prediction = predictor.predict(vect_text)
 
-# labels for outcome
-            dict_labels2 = {1: 'Positive',
-                            0: 'Neutral', -1: 'Negative', 2: 'News'}
+				if model1 == 'AdaBoostClassifier':
+					predictor = load_pickle("resources/models/AdaBoostClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+				
+				
+                final_pred = dict_labels[prediction]
+				st.success("Text Categorized as: {}".format(final_pred))
 
-            # selection for model to be used
-            models2 = ['LinearSVC', 'KNeighborsClassifier', 'DecisionTreeClassifier',
-                       'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
-                       'AdaBoostClassifier']
-            model2 = st.selectbox("Choose Model", models2)
+		if option == "Data set":
 
-            if st.button("Classify"):
-                # Transforming user input with vectorizer
-                clean_text = df[tweet_text2].apply(preprocess_stemm)
-                vect_text = tweet_cv.transform([clean_text]).toarray()
+			st.subheader('Classify single tweet')
+            # Creating a text box for user input
+			tweet_text2 = st.text_area("Enter Cololumn","Type Here")
 
-                if model2 == 'LinearSVC':
-                    predictor = load_pickle("resources/models/LinearSVC.pkl")
-                    prediction = predictor.predict(vect_text)
+            #labels for outcome
+			dict_labels2 = {1:'Positive', 0:'Neutral', -1:'Negative', 2:'News'}
 
-            elif model2 == 'KNeighborsClassifier':
-                predictor = load_pickle(
-                    "resources/models/KNeighborsClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+			#selection for model to be used
+			models2 = ['LinearSVC', 'KNeighborsClassifier','DecisionTreeClassifier', 
+			'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
+			'AdaBoostClassifier']
+			model2 = st.selectbox("Choose Model", models2)
 
-            elif model2 == 'DecisionTreeClassifier':
-                predictor = load_pickle(
-                    "resources/models/DecisionTreeClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+			if st.button("Classify"):
+				# Transforming user input with vectorizer
+				clean_text = df[tweet_text2].apply(preprocess_stemm)
+				vect_text = tweet_cv.transform([clean_text]).toarray()
+		        
+				if model2 == 'LinearSVC':
+					predictor = load_pickle("resources/models/LinearSVC.pkl")
+					prediction = predictor.predict(vect_text)
 
-            elif model2 == 'RandomForestClassifier':
-                predictor = load_pickle(
-                    "resources/models/RandomForestClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+			    if model2 == 'KNeighborsClassifier':
+					predictor = load_pickle("resources/models/KNeighborsClassifier.pkl")
+					prediction = predictor.predict(vect_text)
 
-            elif model2 == 'ComplementNB':
-                predictor = load_pickle("resources/models/ComplementNB.pkl")
-                prediction = predictor.predict(vect_text)
+				if model2 == 'DecisionTreeClassifier':
+					predictor = load_pickle("resources/models/DecisionTreeClassifier.pkl")
+					prediction = predictor.predict(vect_text)
 
-            elif model2 == 'MultinomialNB':
-                predictor = load_pickle("resources/models/MultinomialNB.pkl")
-                prediction = predictor.predict(vect_text)
+				if model2 == 'RandomForestClassifier':
+					predictor = load_pickle("resources/models/RandomForestClassifier.pkl")
+					prediction = predictor.predict(vect_text)
 
-            elif model2 == 'AdaBoostClassifier':
-                predictor = load_pickle(
-                    "resources/models/AdaBoostClassifier.pkl")
-                prediction = predictor.predict(vect_text)
+				if model2 == 'ComplementNB':
+					predictor = load_pickle("resources/models/ComplementNB.pkl")
+					prediction = predictor.predict(vect_text)
 
-            final_pred2 = dict_labels2[prediction]
-            st.success("Text Categorized as: {}".format(final_pred2))
+				if model2  =='MultinomialNB':
+					predictor = load_pickle("resources/models/MultinomialNB.pkl")
+					prediction = predictor.predict(vect_text)
 
-    elif selection == "EDA":
-        st.subheader("Exploratory Data Analysis")
-        df = raw.copy()
-        # Labeling the target
-
-    df['class_label'] = [
-        ['Negative(-1)', 'Neutral(0)', 'Positive(1)', 'News(2)'][x+1] for x in df['sentiment']]
-    dist = df.groupby('class_label').count()['clean_message'].reset_index(
-    ).sort_values(by='clean_message', ascending=False)
-
-    st.dataframe(df.head())
-
-    # bar plot of the count of each sentiment
-    plt.figure(figsize=(12, 6))
-    sns.countplot(x='sentiment', data=df, palette='Blues_d')
-    plt.title('Count of Sentiments')
-    st.pyplot()
-
-    # average length of words overall
-    df['clean_message'].str.split().\
-        apply(lambda x: [len(i) for i in x]).\
-        map(lambda x: np.mean(x)).hist()
-    plt.title('Avg number of words used per tweet')
-    plt.xlabel('Number of words per tweet')
-    plt.ylabel('Count of Tweets')
-
-    # distribution of each of the length of the tweets
-    df['length_tweet'] = df['clean_message'].apply(len)
-    h = sns.FacetGrid(df, col='class_label')
-    h.map(plt.hist, 'length_tweet')
-    plt.show()
-
-    # Box plot visual of distribution between length of tweet vs class label
-    plt.figure(figsize=(10, 6))
-    sns.boxplot(x=df['class_label'],
-                y=df.clean_message.str.split().apply(len),
-                data=df,
-                palette="Blues")
-
-    plt.title('No of Words per Tweet by Sentiment Class')
-    plt.xlabel('Sentiment Class')
-    plt.ylabel('Word Count per Tweet')
-
-    # funnel chart of proportion of each sentiment
-    fig = go.Figure(go.Funnelarea(
-        text=dist.class_label,
-        values=dist.clean_message,
-        title={"position": "top center", "text": "Funnel-Chart of Sentiment Distribution"}))
-    fig.show()
-
-    # bar plot for average length of messages by sentiments
-    plt.figure(figsize=(12, 6))
-    sns.barplot(x='sentiment', y=df['message'].apply(
-        len), data=df, palette='Blues_d')
-    plt.ylabel('avg_Length')
-    plt.xlabel('Sentiment')
-    plt.title('Average Length of Message by Sentiment')
-    st.pyplot()
-
-    # most common words in tweet messages
-    fig = px.bar(new, x="count", y="Common_words", color_discrete_sequence=['']*len(df), title='Commmon Words in tweet messages', orientation='h',
-                 width=600, height=600)
-    fig.show()
+				if model2 == 'AdaBoostClassifier':
+					predictor = load_pickle("resources/models/AdaBoostClassifier.pkl")
+					prediction = predictor.predict(vect_text)
+				
+				
+                final_pred2 = dict_labels2[prediction]
+				st.success("Text Categorized as: {}".format(final_pred2))
 
 
-    elif selection == 'Lets connect':  # I can't figure syntax
+	
+		
+	if selection == 'Lets connect!':
+		st.subheader("Have questions? We are an email away to answer your questions")
 
-st.subheader("Have questions? We are an email away to answer your questions")
+		st.write("Noxolo: wendyngcobo98@gmail.com")
+		st.write("Sabelo: isabelomakhanya@gmail.com")
+		st.write("Morgan: letlhogonolomorgan69@gmail.com")
+		st.write("Tebogo: mrtjsambo@gmail.com")
+		st.write("Sergio: sergiomornayseptember@gmail.com")
+		st.write("Vuyelwa: vuyelwaf22@gmail.com")
+		image = Image.open('resources/imgs/EDSA_logo.png')
+		st.image(image, caption='TS5_EDSA_2021', use_column_width=True)
 
-st.write("Noxolo: wendyngcobo98@gmail.com")
-st.write("Sabelo: isabelomakhanya@gmail.com")
-st.write("Morgan: letlhogonolomorgan69@gmail.com")
-st.write("Tebogo: mrtjsambo@gmail.com")
-st.write("Sergio: sergiomornayseptember@gmail.com")
-st.write("Vuyelwa: vuyelwaf22@gmail.com")
-image = Image.open('resources/imgs/EDSA_logo.png')
-st.image(image, caption='TS5_EDSA_2021', use_column_width=True)
 
-# st.write()
-# Required to let Streamlit instantiate our web app.
+    #st.write()
+# Required to let Streamlit instantiate our web app.  
 if __name__ == '__main__':
-    main()
+	main()
