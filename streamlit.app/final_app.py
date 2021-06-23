@@ -248,7 +248,7 @@ def main():
                 elif model1 == 'DecisionTreeClassifier':
                     predictor = load_pickle("resources/models/DecisionTreeClassifier.pkl")
                     prediction = predictor.predict(vect_text)
-                    # st.write(prediction)
+                    
                 elif model1 == 'RandomForestClassifier':
                     predictor = load_pickle("resources/models/RandomForestClassifier.pkl")
                     prediction = predictor.predict(vect_text)
