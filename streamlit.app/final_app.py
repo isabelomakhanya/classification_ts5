@@ -76,7 +76,7 @@ def main():
     st.title('Tweet Sentiment Classifier')
 
     
-    image = Image.open('resources/imgs/image.png')
+    image = Image.open('resources/imgs/image.jpg')
 
     st.image(image, caption='Tweet Sentiments', use_column_width=True)
 
