@@ -119,7 +119,7 @@ def main():
 
         # labelling target
         df['class_label'] = [['Negative(-1)', 'Neutral(0)', 'Positive(1)', 'News(2)'][x+1] for x in df['sentiment']]
-        dist = df.groupby('class_label').count()['clean_message'].reset_index().sort_values(by='clean_message',ascending=False)
+        dist = df.groupby('class_label').count()['stemm'].reset_index().sort_values(by='stemm',ascending=False)
 
         
         st.write('The Bar chart of count per sentiment')
@@ -131,7 +131,7 @@ def main():
         st.pyplot()
         
         # average length of words overall
-        df['clean_message'].str.split().\
+        df['stemm'].str.split().\
             apply(lambda x : [len(i) for i in x]).\
                 map(lambda x: np.mean(x)).hist()
         plt.title('avg number of words used per tweet')
@@ -139,7 +139,7 @@ def main():
         plt.ylabel('Count of Tweets')        
 
         # distribution of each of length of the tweets
-        df['length_tweet'] = df['clean_message'].apply(len)
+        df['length_tweet'] = df['stemm'].apply(len)
         h = sns.FacetGrid(df, col ='class_label')
         h.map(plt.hist,'length_tweet')
         plt.show()
@@ -171,7 +171,7 @@ def main():
         st.pyplot()
 
         #most common words in tweet messages bar plt
-        df['new_lis'] = df['clean_message'].apply(lambda x:str(x).split())
+        df['new_lis'] = df['stemm'].apply(lambda x:str(x).split())
         words = Counter([item for sublist in df['new_lis'] for item in sublist])
         new = pd.DataFrame(words.most_common(20))
 
