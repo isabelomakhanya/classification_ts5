@@ -78,3 +78,11 @@ Presentation (Beautiful.ai, Google Slides, PowerBI, Streamlit)
  * .pkl + pickle vectorized
  * 
 
+approach 
+insights
+solutions
+plans scaling
+business
+basics of ml
+value
+selling
