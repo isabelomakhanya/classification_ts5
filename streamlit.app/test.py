@@ -23,6 +23,7 @@ import re    #for regex
 import nltk
 from nltk.stem.porter import *
 from nltk.corpus import stopwords
+from streamlit.elements.utils import clean_text
 from wordcloud import WordCloud 
 from collections import Counter
 #import spacy
@@ -33,14 +34,15 @@ from nltk.tokenize import RegexpTokenizer
 from sklearn.feature_extraction.text import CountVectorizer
 
 from PIL import Image
-import matplotlib
-matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import seaborn as sns 
 
 # Vectorizer
-news_vectorizer = open("resources/models/TS5Vectorizer.pkl","rb")
+
+news_vectorizer = open("resources//models/tfidfvect.pkl","rb")
+count_vect = open("resources/models/vector.pkl","rb")
 tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
+count_v = joblib.load(count_vect)
 
 # Load your raw data
 raw = pd.read_csv("resources/clean.csv")
@@ -112,7 +114,7 @@ def main():
 
         st.info("Make tweet Predictions with ML Models of your choice")
 
-        choice = ['Single Tweet', 'Dataset'] #choices between a single tweet and a dataset input
+        choice = ['Single Tweet','Dataset'] #choices between a single tweet and a dataset input
 
         option = st.selectbox('What to classify?', choice)
 
@@ -139,11 +141,12 @@ def main():
             dict_labels2 = {'Positive':1,'Neutral':0,'Negative':-11,'News':2}
             
             tweet_text2 = st.text_area('Enter column to classify')
-
+            #st.text("Original test ::\n{}".format(tweet_text2))
+            clean_text2 = preprocess_stemm(tweet_text2)
             
             if st.button('Classify'):
-
-                vect_text = tweet_cv.transform([tweet_text2]).to_array()
+            
+                vect_text = count_v.transform([clean_text2])
                 if model2 == 'LinearSVC':
                     predictor = load_pickle("resources/models/LinearSVC.pkl")
                     prediction = predictor.predict(vect_text)
