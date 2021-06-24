@@ -183,7 +183,7 @@ def main():
         words = Counter([item for sublist in df['new_lis'] for item in sublist])
         new = pd.DataFrame(words.most_common(20))
 
-        fig = px.bar(new, x='count', y="common_words", 
+        fig = px.bar(new, x=[0,1], y=[0, 1], 
         color_discrete_sequence=['']*len(df),
         title ='Commmon Words in tweet messages', orientation='h',
         width=600, height=600)
