@@ -39,7 +39,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 
 # Vectorizer
-news_vectorizer = open("resources/models/TS5Vectorizer2.pkl","rb")
+news_vectorizer = open("resources/models/TS5Vectorizer.pkl","rb")
 tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
 
 # Load your raw data
@@ -48,6 +48,23 @@ raw = pd.read_csv("resources/clean.csv")
 
 df = raw.copy()
 
+#st.cache(suppress_st_warning=True)
+lemmatizer = WordNetLemmatizer()
+stemmer = PorterStemmer()
+def preprocess_stemm(sentence):
+    sentence=str(sentence)
+    sentence = sentence.lower()
+    sentence=sentence.replace('{html}',"") 
+    cleanr = re.compile('<.*?>')
+    cleantext = re.sub(cleanr, '', sentence)
+    rem_url=re.sub(r'http\S+', '',cleantext)
+    rem_num = re.sub('[0-9]+', '', rem_url)
+    tokenizer = RegexpTokenizer(r'\w+')
+    tokens = tokenizer.tokenize(rem_num)  
+    filtered_words = [w for w in tokens if len(w) > 2 if not w in stopwords.words('english')]
+    stem_words=[stemmer.stem(w) for w in filtered_words]
+    lemma_words=[lemmatizer.lemmatize(w) for w in stem_words]
+    return " ".join(lemma_words)
 
 
 def main():
@@ -76,15 +93,14 @@ def main():
 
     # Building information page
     if selection == 'Information':
-        st.info("General Information")
-        st.markdown('This section explains how to naviagte the app')
-        st.markdown('**********************************************************************************')
-        st.markdown(' This app will take user input tweet in a form of a text')
-        st.markdown('The app then allows the user to choose the model they want to use for their tweet')
+        st.info("""This section explains how to naviagte the app""")
+        st.markdown("""This app will take user input tweet in a form of a text and 
+        then allows the user to choose the model they want to use for their tweet.
+        It will then classify the entered tweet into either Positive(1), Negative(-1), News(2), Neutral(0)""")
         st.markdown('***********************************************************************************')
-        st.markdown('To access all pages, use the navigation bar')
-        st.markdown('Check the EDA page for visuals on trained dataset and use predict tweet page to predict your tweet')
-        st.markdown('Let the tweet spy game begin hahhaa!!!')
+        st.markdown('- To access all pages, use the navigation bar')
+        st.markdown('- Check the EDA page for visuals on trained dataset and use predict tweet page to predict your tweet')
+        st.markdown('**Let the tweet spy game begin hahhaa!!!**')
 
         st.subheader("Raw Twitter data and label")
         if st.checkbox('Show raw data'):
@@ -108,59 +124,7 @@ def main():
 
 
 
-        if choice == 'Single Tweet':
-            #For single tweet
-            st.subheader('Classify single tweet')
 
-            tweet_text1 = st.text_area("Enter Tweet","Type Here") #Creating a text box for user input
-            models1 = ['LinearSVC', 'KNeighborsClassifier','DecisionTreeClassifier', 
-			'RandomForestClassifier', 'ComplementNB', 'MultinomialNB',
-			'AdaBoostClassifier']
-
-            # Selection for model to be used
-            model1 = st.selectbox("Choose ML Model",models1)
-
-            
-
-            dict_labels = {'Positive':1,'Neutral':0,'Negative':-1,'News':2}
-            if st.button('Classify'):
-
-                
-                #clean_text1 = preprocess_stemm(tweet_text1) 
-                vect_text = tweet_cv.transform([tweet_text1]).toarray()
-
-                if model1 == 'LinearSVC':
-                    predictor = load_pickle("resources/models/LinearSVC.pkl")
-                    prediction = predictor.predict(vect_text)
-                    
-                elif model1 == 'KNeighborsClassifier':
-                    predictor = load_pickle("resources/models/KNeighborsClassifier.pkl")
-                    prediction = predictor.predict(vect_text)
-                    
-                elif model1 == 'DecisionTreeClassifier':
-                    predictor = load_pickle("resources/models/DecisionTreeClassifier.pkl")
-                    prediction = predictor.predict(vect_text)
-                    
-                elif model1 == 'RandomForestClassifier':
-                    predictor = load_pickle("resources/models/RandomForestClassifier.pkl")
-                    prediction = predictor.predict(vect_text)
-				
-                elif model1 == 'ComplementNB':
-                    predictor = load_pickle('resources/models/ComplementNB.pkl')
-                    prediction = predictor.predict(vect_text)
-
-                elif model1 == 'MultinomialNB':
-                    predictor = load_pickle('resources/models/MultinomialNB.pkl')
-                    prediction = predictor.predict(vect_text)
-
-                elif model1 == 'AdaBoostClassifier':
-                    predictor = load_pickle('resources/models/AdaBoostClassifier.pkl')
-                    prediction = predictor.predict(vect_text)    
-
-
-
-                final_pred = dict_labels[prediction]
-                st.success("Tweet Categorized as:: {}".format(final_pred))
 
         if option == 'Dataset':
             #For data set classification
@@ -217,7 +181,7 @@ def main():
 
     #Home page
     if selection == 'Home':
-        
+        st.markdown('*******************************************************************************************')
         welcome_image = Image.open('resources/imgs/image.jpg')
         st.image(welcome_image,use_column_width=True)
         st.subheader('Classifying Climate Change based Tweets')
@@ -225,16 +189,19 @@ def main():
      # Eploratory data analysis   
     if selection =='EDA':
         st.title('Exploratory Data Analysis')
+        st.markdown('*******************************************************************************************')
         if st.checkbox('Count of Tweets per Sentiment'):
             st.markdown('Sentiment by class')
-            st.markdown('**Positive(1)**: These are tweets that for climate change')
-            st.markdown('**Neutral(0)**: These are tweets that are neither for or against climate change')
-            st.markdown('**News(2)**: These tweets are about news that report on climate change')
-            st.markdown('**Negative(-1)**: These tweets are against climate change')
+            st.markdown('** - Positive(1)**: These are tweets that for climate change')
+            st.markdown('** - Neutral(0)**: These are tweets that are neither for or against climate change')
+            st.markdown('** - News(2)**: These tweets are about news that report on climate change')
+            st.markdown('** - Negative(-1)**: These tweets are against climate change')
+            st.markdown('****************************************************************************************')
             st.image(Image.open('resources/imgs/countSentimentPerT.png'),caption='Count of Sentiment', use_column_width=True)
-            st.markdown('This figure shows an imbalance between the different sentiments')
-            st.markdown('With positive being the highest followed by news, neutral tweets and less negative tweets')
-            st.markdown('Most people tweet positively about climate change')
+            st.markdown('- This figure shows an imbalance between the different sentiments')
+            st.markdown('- The positive class being the highest followed by news, neutral tweets and less negative tweets')
+            st.markdown('- Most people tweet positively about climate change')
+
         #Distribution
         if st.checkbox('Distribution of words'):
            st.markdown('Sentiment Distribution')
@@ -268,7 +235,9 @@ def main():
 
             if choices == 'general common words':
                 st.image(Image.open('resources/imgs/CommonOverBar.png'), caption='Most common words tweet sentiments', use_column_width=True)
-                st.image(Image.open('resources/imgs/cloudOverall.png'), caption='Most common words tweet sentiments', use_column_width=True)   
+                st.image(Image.open('resources/imgs/cloudOverall.png'), caption='Most common words tweet sentiments', use_column_width=True)
+                st.markdown("""We can see that the from all the graph the most common words are have similar words like Climate, 
+                climate change, Trump and Before the flood, although there seem to be words here that are irrelevant, eg. single words like 'tcot' """) 
 
 
     
